@@ -31,7 +31,7 @@ class PlotThread(QThread):
         self.y_data = []
         self.i_data = []
         self.j_data = []
-        self.win = 200
+        self.win = 150
         self.mutex = QMutex() 
         self.pen1 = pg.mkPen(color=(255, 0, 0), width=3)
         self.pen2 = pg.mkPen(color=(0, 0, 255), width=3)
@@ -47,6 +47,7 @@ class PlotThread(QThread):
         self.inscribed_radius = 12
         self.t = None      
         self.state = None
+        self.myWin.pushButton_4.clicked.connect(self.clear)
 
     #def update_data1(self, new_x, new_y):
     #    self.mutex.lock()
@@ -59,8 +60,9 @@ class PlotThread(QThread):
             self.mutex.lock()
             self.i_data.append(new_x)
             self.j_data.append(new_y)
-            self.myWin.U = new_y
-            self.myWin.V = new_x
+            if self.myWin.spectrum_debug == False:
+                self.myWin.U = new_y
+                self.myWin.V = new_x
             self.mutex.unlock()
     
     def run(self):
@@ -75,6 +77,10 @@ class PlotThread(QThread):
 
     def pause(self):
         self.state = 'pause'
+
+    def clear(self):
+        self.x_data.clear()
+        self.y_data.clear()
     
     def Assistant_plot(self):
         # Only update the data when input is valid
@@ -87,6 +93,17 @@ class PlotThread(QThread):
         self.tx1, self.ty1 = self.t.diagram_data_uv(omega=self.omega, m=229, e=3, r = self.inscribed_radius)
         self.tx2, self.ty2 = self.t.diagram_data_uv(omega=self.omega, m=228, e=3, r = self.inscribed_radius)
         self.tx3, self.ty3 = self.t.diagram_data_uv(omega=self.omega, m=233, e=1, r = self.inscribed_radius)
+        
+        ion_1 = pg.PlotCurveItem(self.tx0,self.ty0,name=r'Th-229(I)',pen=self.pen1)
+        ion_2 = pg.PlotCurveItem(self.tx1,self.ty1,name=r'Th-229(III)',pen=self.pen2)
+        ion_3 = pg.PlotCurveItem(self.tx2,self.ty2,name=r'Th-228(III)',pen=self.pen3)
+        ion_4 = pg.PlotCurveItem(self.tx3,self.ty3,name=r'U-233(I)',pen=self.pen4)
+        
+        self.plot_widget.addItem(ion_1)
+        self.plot_widget.addItem(ion_2)
+        self.plot_widget.addItem(ion_3)
+        self.plot_widget.addItem(ion_4)
+        '''
         self.plot_widget.getPlotItem().plot(
             self.tx0,
             self.ty0,
@@ -107,27 +124,75 @@ class PlotThread(QThread):
             self.ty3,
             name=r'U-233(I)',
             pen=self.pen4)
+        '''
     
     def update_plot(self):
         # Call Assistant Plot
         self.mutex.lock()
-        self.plot_widget.clear()
-        self.Assistant_plot()
         # Monitoring Plot
         if self.state == 'play':
+            self.plot_widget.clear()
+            self.Assistant_plot()
+            #import ipdb; ipdb.set_trace()
             try:
                 if len(self.i_data) > self.win:
+                    self.x_data = self.i_data[-self.win:]
+                    self.y_data = self.j_data[-self.win:]
                     self.i_data = self.i_data[-self.win:]
                     self.j_data = self.j_data[-self.win:]
-                self.plot_widget.getPlotItem().plot(
+                else:
+                    self.x_data = self.i_data
+                    self.y_data = self.j_data
+
+                if len(self.x_data) > 1:
+                    self.plot_widget.getPlotItem().plot(
+                        self.x_data[:-1],
+                        self.y_data[:-1],
+                        name="Monitor Values",
+                        pen=None, #pg.mkPen(color=(0, 114, 189), width=3),
+                        symbol='o',
+                        symbolBrush = pg.mkBrush(color=(0, 114, 189)),
+                        symbolSize=5)
+                    
+                    self.plot_widget.getPlotItem().plot(
+                        [self.x_data[-1]],[self.y_data[-1]],
+                        name="Latest Monitor Values",
+                        pen= None, #pg.mkPen(color=(0, 114, 189), width=3),
+                        symbol='o',
+                        symbolBrush = 'r',
+                        symbolSize=10)
+
+                elif len(self.x_data) == 1:
+                    self.plot_widget.getPlotItem().plot(
+                        [self.x_data[-1]],[self.y_data[-1]],
+                        name="Latest Monitor Values",
+                        pen=None, #pg.mkPen(color=(0, 114, 189), width=3),
+                        symbol='o',
+                        symbolBrush = 'r',
+                        symbolSize=10)
+            except:
+                pass
+            #print(len(self.i_data))
+            #self.plot_widget.show()
+        else:
+            self.plot_widget.clear()
+            self.Assistant_plot()
+            self.plot_widget.getPlotItem().plot(
                     self.i_data,
                     self.j_data,
                     name="Monitor Values",
-                    #pen=self.pen2,
-                    symbol='+',
-                    symbolSize=20)
-            except:
-                pass
+                    pen= None, #pg.mkPen(color=(0, 114, 189), width=3),
+                    symbol='o',
+                    symbolSize=5)
+            '''
+            self.plot_widget.getPlotItem().plot(
+                    self.i_data,
+                    self.j_data,
+                    name="Monitor Values",
+                    pen= None, #pg.mkPen(color=(0, 114, 189), width=3),
+                    symbol='o',
+                    symbolSize=5)
+            '''
         self.mutex.unlock()
 
     def stop(self):

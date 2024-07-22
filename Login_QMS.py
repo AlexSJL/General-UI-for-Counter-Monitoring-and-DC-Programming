@@ -7,6 +7,9 @@ from port_ctrl1 import Rigol_DCPort
 from CAENDesktopHighVoltagePowerSupply1 import CAENDesktopHighVoltagePowerSupply, OneCAENChannel
 import pyvisa as visa
 import time
+from time import strftime
+from datetime import datetime
+
 import numpy as np
 import serial
 import serial.tools.list_ports 
@@ -21,13 +24,13 @@ from Configuration import Configurations as CF
 from config_setting import Doppler, Zero, Detection
 from AMU_PlotThread import AMUThread
 
-import sys
+import os
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.figure import Figure
 from PyQt5.QtGui import QIcon, QGuiApplication
 from PyQt5.QtCore import Qt, QTimer, QThread, QMutex
 from PyQt5.QtWidgets import *
-from PyQt5 import QtCore, QtGui, QtWidgets
+from PyQt5 import QtCore, QtWidgets#, QtGui
 import pyqtgraph as pg
 
 from cion.core.sequencer import *
@@ -41,6 +44,7 @@ from cion.labbrick.labbrick import Labbrick
 from cion.core.hardware.zwdc_dds import ZWDX_DDS_NETWORK
 from time import strftime
 from datetime import datetime
+from DA_window import DA_Window
 
 FPGA_Pin_Config = {
     'Strong'   : '10000000 00000000 00000000',    # 1 is close, 0 is open
@@ -82,7 +86,8 @@ Exp_chapter_dict = {
 
 ################ DDS initi ####################
 
-####################################################
+#########
+##########################################
 
 
 class Doppler(BaseGate):
@@ -290,9 +295,6 @@ class Rx_Example(AdvanceGate):
         super().__init__(latency=latency, para_table=para_table, awg_flag=awg_flag)
         self.pulse_type = 'Rx_Example'
 
-
-
-
 # an example of RSB paratable for sideband cooling
 
 RSB_paratable = {
@@ -358,7 +360,7 @@ def sideBandCooling(pumping_time, cycles, para_table):
     result_seq.append(sync(all))
     return result_seq
 
-
+#chatgpt can do it, help us to get the number of com
 def get_com_list():
     Com_List = []
     plist = list(serial.tools.list_ports.comports())
@@ -367,6 +369,7 @@ def get_com_list():
             Com_List.append(list(plist[i])[0])
     return Com_List
 
+#the most important, logic, by Alex.S
 class MyWindow(QMainWindow,Ui_MainWindow):
     def __init__(self, parent=None):
         super(MyWindow, self).__init__(parent)
@@ -382,16 +385,30 @@ class MyWindow(QMainWindow,Ui_MainWindow):
         #self.pushButton_4.clicked.connect(self.clear)
         self.pushButton_4.setEnabled(False)
         self.mkd_save.clicked.connect(self.mkd_sav)
+        self.pushButton_2.clicked.connect(self.data_analysis)
         self.mkd_note = []
+        self.spectrum_debug = True
+        self.debug_state = False
         self.marker = False
-        self.V = 200
-        self.U = 200
+        self.Slopeinputdata.setText('0.16783')
+        self.Interceptionputdata.setText('0')
+        if self.spectrum_debug:
+            k = float(self.Slopeinputdata.text())
+            b = float(self.Interceptionputdata.text())
+            self.V = np.linspace(200, 1500, 1000) + np.random.rand(1000) / 10
+            self.U = k * self.V + b
+            self.V = list(self.V)
+            self.U = list(self.U)
+        else:
+            self.V = 0
+            self.U = 0
         self.counter_port ="COM5"
 
         #print(self.exp.data.path_prefix) # Indicate the path to store data
 
+#activate counter and plot line curve and histogram(especially for Th isomer decay)
     def play(self):
-        global ser, serialPort, DC, myWin, plot_thread, exp, detection, AMU_thread #, control_thread
+        global ser, serialPort, DC, myWin, plot_thread, detection, AMU_thread #，exp, control_thread
         if self.pushButton_3.text() == "Play": # Start Configurations
             
             #if self.sendbutton.text() != 'Disconnect':
@@ -436,16 +453,24 @@ class MyWindow(QMainWindow,Ui_MainWindow):
             #             ion_charge = float(self.lineEdit_4.text()))
             # Monitoring Plot
             plot_thread.start()
+            plot_thread.play()
+            AMU_thread.start()
+            AMU_thread.play()
+            self.debug_state = True  
             #control_thread.start()
             #self.Conf()
             # Counter Data Input
-            exp.sweep(sequence=detection, myWin=myWin, AMU_thread = AMU_thread)
+            #exp.sweep(sequence=detection, myWin=myWin, AMU_thread = AMU_thread)
 
         elif self.pushButton_3.text() == "Pause": # Current Status: Running -> Pause
             self.enable_parameter()
             self.pushButton_2.setEnabled(True)
             self.message.append("Configuration Pause")
             self.pushButton_3.setText("Resume")
+            plot_thread.pause()
+            AMU_thread.pause()
+            self.debug_state = False
+
             #control_thread.stop()
         elif self.pushButton_3.text() == "Resume": # Current Status: Pause, click to run
             #if self.sendbutton.text() == 'Connect': # If connection disconnect, show warning
@@ -462,7 +487,10 @@ class MyWindow(QMainWindow,Ui_MainWindow):
             self.pushButton_2.setEnabled(False)
             #self.pushButton_4.setEnabled(True)
             self.message.append("Configuration Resume")
-            self.pushButton_3.setText("Pause")                                                                      
+            self.pushButton_3.setText("Pause")
+            plot_thread.play()
+            AMU_thread.play()
+            self.debug_state = True                                                                      
             #self.CF = CF(ser=ser, 
             #             RF_chan=self.comboBox_5.currentText(), 
             #             DC_chan_pos=self.comboBox_3.currentText(), 
@@ -474,22 +502,66 @@ class MyWindow(QMainWindow,Ui_MainWindow):
             #self.Conf()
 
     #################################################### Following are Basic Functions of UI ################################################
+#open a new window to show what happens after marker
     def data_analysis(self):
-        # Data Analysis only Available 
+        # Data Analysis only Available
         if self.pushButton_3.text() == "Pause":
             return
         
+        if self.year.text() != '':
+            year = self.year.text()
+        else:
+            year = str(datetime.now().year)
+
+        if self.month.text() != '':
+            Month = self.month.text()
+        else:
+            Month = strftime("%m", time.localtime())
         
+        if self.day.text() != '':
+            day = self.day.text()
+        else:
+            day = strftime("%d", time.localtime())
 
+        if self.hour.text() != '':
+            Hour = self.hour.text()
+        else:
+            Hour = strftime("%H", time.localtime())
 
+        datapath = 'D:/Data/'+ year + '/' + year + Month
+
+        if os.path.exists(datapath):
+            try:
+                self.DA = DA_Window(datapath=datapath, Year=year, Month=Month, Day=day, Hour=Hour)
+                self.DA.show()
+            except:
+                if self.hour.text() == '':
+                    self.show_dialog(str="Default Time Has no Data", title = "No Data Error")
+                else:
+                    self.show_dialog(str="Data Does not Exist",title="No Data Error")
+        else:
+            return
+
+    def spectrometer_debug(self):
+        global plot_thread
+        #import ipdb; ipdb.set_trace()
+        if self.spectrum_debug == True and self.debug_state == True:
+            self.V = self.V[1:] + self.V[:1]
+            self.U = self.U[1:] + self.U[:1]
+            plot_thread.update_data2(self.V[0], self.U[0])
+            AMU_thread.update_data(int(float(self.label_34.text())))
+
+#configure
     def Conf(self):
+        k = float(self.Slopeinputdata)
+        b = float(self.Interceptionputdata)
         if self.selecting.isChecked(): # Generate U and V that only ions specified on "Parameter Settings" can go through
             self.CF.config()
         elif self.scanning.isChecked():
             if self.auto.isChecked():
                 Duration = None
-                u_set = np.linspace(float(self.Aminputdata), float(self.AMinputdata) , int(self.Sample))
-                v_set = np.linspace(float(self.Qminputdata), float(self.QMinputdata) , int(self.Sample))
+                v_set = np.linspace(float(self.Aminputdata), float(self.AMinputdata) , int(self.Sample))
+                u_set = k * v_set + b
                 if self.Duration.text() != '': # in auto mode, all step have the same duration
                     try:
                         Duration = float(self.Duration.split(',')[0])
@@ -499,15 +571,14 @@ class MyWindow(QMainWindow,Ui_MainWindow):
                     self.CF.config(u_set[i], v_set[i], update_time = Duration)
             elif self.custom.isChecked():
                 Duration = None
-                u_set = [float(self.Aminputdata)]
-                v_set = [float(self.Qminputdata)]
+                v_set = [float(self.Aminputdata)]
+                u_set = k * v_set + b
                 Astep = self.Astep.split(',')
-                Hstep = self.Hstep.split(',')
                 for i in range(len(Astep)):
-                    u_set.append(float(Astep[i]))
-                    v_set.append(float(Hstep[i]))
-                u_set.append(float(self.AMinputdata))
-                v_set.append(float(self.QMinputdata))
+                    v_set.append(float(Astep[i]))
+                    u_set.append(k * float(Astep[i]) + b)
+                v_set.append(float(self.AMinputdata))
+                u_set.append( k * float(self.AMinputdata) + b)
                 if self.Duration.text() != '':
                     try:
                         Duration = self.Duration.split(',')
@@ -523,6 +594,7 @@ class MyWindow(QMainWindow,Ui_MainWindow):
                 else:
                     self.CF.config(u_set[i], v_set[i], update_time = Duration)
 
+#markdown save, marker on events
     def mkd_sav(self):
         if self.mkdwindow.toPlainText() == "":
             self.mkd_note.insert(0, "Plain Marker")
@@ -533,9 +605,11 @@ class MyWindow(QMainWindow,Ui_MainWindow):
             self.message.append(message)
             self.mkdwindow.clear()
 
+#Alex want port to be set as 5
     def Counter_port(self, port: int = 5):
         self.counter_port = "COM" + str(port)
-    
+
+#check if all necessary inputs are valid    
     def check_input_validity(self):
         if self.scanning.isChecked() is False and self.selecting.isChecked() is False:
             return True
@@ -571,7 +645,8 @@ class MyWindow(QMainWindow,Ui_MainWindow):
                 self.show_dialog(str = "Number of Step is different", title = "Invalid Input Parameter")
                 return False 
         return True
-        
+
+#open serial port(for high voltage power),Alex copied it from zhihu        
     def open_com(self):
         global ser, serialPort, baudRate, com_list, myWin, Work_message_Thread
         com_list = get_com_list() # Get available Ports
@@ -615,6 +690,7 @@ class MyWindow(QMainWindow,Ui_MainWindow):
             myWin.show_dialog(str='No Port Detected', title='Warning：Port Unfound')
             #Work_message_Thread.stop()
 
+#Alex copied it from zhihu,warning. For example, if no serial connection, play will be wrong 
     def show_dialog(self,str,title=""):
         # Create QDialog object
         dialog = QDialog()
@@ -647,9 +723,11 @@ class MyWindow(QMainWindow,Ui_MainWindow):
         # Show the dialog
         dialog.exec_()
 
+#Alex abandon it!
     def Timer(self):
         self.count+=1
 
+#message window show what we have marked
     def message_display(self):
         if self.message==[]:
             pass
@@ -657,13 +735,15 @@ class MyWindow(QMainWindow,Ui_MainWindow):
             for m in self.message:
                 self.messagewindow.append(m)
             self.message = []
-        
+
+#Alex copied it from website,if we change port, something must be done automatically
     def port_changed(self, text):
         global ser, serialPort
         serialPort = text
         print('Port：' + serialPort)
         ser.port = serialPort
-        
+
+#Alex copied it from website,if we change baud, something must be done automatically
     def baud_changed(self, text):
         global ser, baudRate
         baudRate = int(text)
@@ -692,6 +772,8 @@ if __name__=='__main__':
             # import ipdb; ipdb.set_trace()
             # execfile('C:/Users/23053/Desktop/QMS Scanning ver 1.1/QMS Scanning/config_setting.py')
     ion_number = 1
+
+    '''
     exp = Experiment(ion_number=ion_number, chapter_dict=Exp_chapter_dict, port="COM5", myWin=myWin) # Check the port first
     seq = exp.last_sequence
 
@@ -705,7 +787,7 @@ if __name__=='__main__':
                 Detection(detection_time, label='Detection').on(all))
     exp.repeat=1
     exp.state_flag=True
-
+    '''
 #################################################
     com_list=get_com_list() #obtain port list
 
