@@ -38,14 +38,15 @@ class Configurations():
         self.y0=self.SD.func0(self.x0)
         self.u_con = self.y0 * self.ion_mass * self.In_radius**2.* self.RF_freq**2. /(4. * self.ion_charge)
         self.v_con = self.x0 * self.ion_mass * self.In_radius**2.* self.RF_freq**2. /(2. * self.ion_charge)
-        self.u_ref = Amp_DC_converter("amplitude_data.csv", 4)
-        self.v_ref = Amp_DC_converter("DC_data.csv", 4)
+        self.u_ref = Amp_DC_converter("DC_data.csv", 4)
+        self.v_ref = Amp_DC_converter("amplitude_data.csv", 4)
         self.v_set = self.v_ref.converter(self.v_con)
         self.u_set = self.u_ref.converter(self.u_con)
         self.timer = QTimer()
         self.timer.timeout.connect(self.Timer)
         self.count = 0
-    
+
+#function to set dc, see source manual    
     def config(self, update_time = None, u=None, v= None):
         if update_time:
             update_time = update_time
@@ -57,7 +58,7 @@ class Configurations():
         
         if u and v:
             # First set the amplitude of RF
-            self.DC.RF_set(u)
+            self.DC.RF_set(v)
             
             # Wait 1 seconds for RF configuration
             self.timer.start(100)
@@ -67,8 +68,8 @@ class Configurations():
             self.count = 0
         
             # Then set the DC offset
-            self.DC.DC_set(v,self.DC_chan_pos)
-            self.DC.DC_set(v,self.DC_chan_neg)
+            self.DC.DC_set(u,self.DC_chan_pos)
+            self.DC.DC_set(u,self.DC_chan_neg)
         else:
             # First set the amplitude of RF
             self.DC.RF_set(self.v_set)    

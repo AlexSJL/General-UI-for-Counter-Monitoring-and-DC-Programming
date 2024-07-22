@@ -25,6 +25,14 @@ class Stability_Diagram():
     def func1(self, x):
         return x**2./2 - 7*x**4./128 + 29*x**6./2304 - 68687*x**8./18874368
     
+    def func(self, x):
+        if x <= self.x0:
+            return self.func1(x)
+        elif x > self.x0 and x <= self.x1:
+            return self.func0(x)
+        else:
+            return None
+    
     def diagram_data_aq(self):
         self.y_list0 = self.func1(self.x_list0)
         self.y_list1 = self.func0(self.x_list1)

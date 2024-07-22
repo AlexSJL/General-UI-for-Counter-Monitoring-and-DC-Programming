@@ -19,14 +19,15 @@ from random import randint
 from First_Stability_Diagram import Stability_Diagram as SD
 
 import sys
-from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
-from matplotlib.figure import Figure
+#from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
+#from matplotlib.figure import Figure
 from PyQt5.QtGui import QIcon, QDoubleValidator
 from PyQt5.QtCore import Qt, QTimer
 from PyQt5.QtWidgets import *
 from PyQt5 import QtCore, QtGui, QtWidgets
 import pyqtgraph as pg
 
+#all defined by Alex, except the first 2
 
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
@@ -260,9 +261,9 @@ class Ui_MainWindow(object):
         self.label_16.setObjectName("label_16")
         self.label_16.lower()
         
-        # Button: Save Data
+        # Button: Data Analysis
         self.pushButton_2 = QtWidgets.QPushButton(self.centralwidget)
-        self.pushButton_2.setGeometry(QtCore.QRect(1280, 100, 101, 41))
+        self.pushButton_2.setGeometry(QtCore.QRect(1280, 160, 101, 31))
         font = QtGui.QFont()
         font.setFamily("Adobe Arabic")
         font.setPointSize(12)
@@ -447,52 +448,53 @@ class Ui_MainWindow(object):
         self.AMinputlabel.setAlignment(QtCore.Qt.AlignCenter)
         self.AMinputlabel.setObjectName("AMinputlabel")
         
-        # Input 3: DC lowest Volt, text input window
-        self.Qminputdata = QtWidgets.QLineEdit(self.centralwidget)
-        self.Qminputdata.setGeometry(QtCore.QRect(1610, 110, 200, 22)) #950, 110, 67, 22
+        # Input 3: Slope, line edit
+        self.Slopeinputdata = QtWidgets.QLineEdit(self.centralwidget)
+        self.Slopeinputdata.setGeometry(QtCore.QRect(1610, 110, 200, 22)) #950, 110, 67, 22
         font = QtGui.QFont()
         font.setPointSize(12)
-        self.Qminputdata.setPlaceholderText("0 - 3000 V")
-        self.Qminputdata.setFont(font)
-        self.Qminputdata.setObjectName("Qminputdata")
-        self.Qminputdata.setReadOnly(True)
+        self.Slopeinputdata.setPlaceholderText("0 - 3000 V")
+        self.Slopeinputdata.setFont(font)
+        self.Slopeinputdata.setObjectName("Slopeinputdata")
+        self.Slopeinputdata.setReadOnly(True)
+        
+        #self.Slopeinputdata.setValidator(validator2)
+        
+        # Input 3 Label
+        self.Slopelabel = QtWidgets.QLabel(self.centralwidget)
+        self.Slopelabel.setGeometry(QtCore.QRect(1430, 110, 170, 22))
+        font = QtGui.QFont()
+        font.setPointSize(12)
+        self.Slopelabel.setFont(font)
+        self.Slopelabel.setAlignment(QtCore.Qt.AlignCenter)
+        self.Slopelabel.setObjectName("Slopelabel")
+        
+        # Input 4: Interception, line edit
+        self.Interceptionputdata = QtWidgets.QLineEdit(self.centralwidget)
+        self.Interceptionputdata.setGeometry(QtCore.QRect(1990, 110, 200, 22))
+        font = QtGui.QFont()
+        font.setPointSize(12)
+        self.Interceptionputdata.setPlaceholderText("0 - 3000 V")
+        self.Interceptionputdata.setFont(font)
+        self.Interceptionputdata.setObjectName("Interceptioninputdata")
+        self.Interceptionputdata.setReadOnly(True)
         reg2 = QtCore.QRegExp('\d?(\.\d{2})|[1-9]\d(\.\d{2})|[1-9]\d{2}(\.\d{2})|[1-2]\d{3}(\.\d{2})|3000?')
         validator2 = QtGui.QRegExpValidator()
         validator2.setRegExp(reg2)
-        self.Qminputdata.setValidator(validator2)
-        
-        # Input 3 Label
-        self.Qminputlabel = QtWidgets.QLabel(self.centralwidget)
-        self.Qminputlabel.setGeometry(QtCore.QRect(1430, 110, 170, 22))
-        font = QtGui.QFont()
-        font.setPointSize(12)
-        self.Qminputlabel.setFont(font)
-        self.Qminputlabel.setAlignment(QtCore.Qt.AlignCenter)
-        self.Qminputlabel.setObjectName("Qminputlabel")
-        
-        # Input 4: DC greatest Volt, text input window
-        self.QMinputdata = QtWidgets.QLineEdit(self.centralwidget)
-        self.QMinputdata.setGeometry(QtCore.QRect(1990, 110, 200, 22))
-        font = QtGui.QFont()
-        font.setPointSize(12)
-        self.QMinputdata.setPlaceholderText("0 - 3000 V")
-        self.QMinputdata.setFont(font)
-        self.QMinputdata.setObjectName("QMinputdata")
-        self.QMinputdata.setReadOnly(True)
-        self.QMinputdata.setValidator(validator2)
+        self.Interceptionputdata.setValidator(validator2)
         
         # Input 4 Label
-        self.QMinputlabel = QtWidgets.QLabel(self.centralwidget)
-        self.QMinputlabel.setGeometry(QtCore.QRect(1810, 110, 170, 22))
+        self.Interceptlabel = QtWidgets.QLabel(self.centralwidget)
+        self.Interceptlabel.setGeometry(QtCore.QRect(1810, 110, 170, 22))
         font = QtGui.QFont()
         font.setPointSize(12)
-        self.QMinputlabel.setFont(font)
-        self.QMinputlabel.setAlignment(QtCore.Qt.AlignCenter)
-        self.QMinputlabel.setObjectName("QMinputlabel")
+        self.Interceptlabel.setFont(font)
+        self.Interceptlabel.setAlignment(QtCore.Qt.AlignCenter)
+        self.Interceptlabel.setObjectName("Interceptlabel")
         
         # Input 5: Hstep
         self.Hstep = QtWidgets.QLineEdit(self.centralwidget)
-        self.Hstep.setGeometry(QtCore.QRect(1610, 150, 200, 22))# 950, 150, 67, 22
+        self.Hstep.setGeometry(QtCore.QRect(1990, 150, 200, 22))# 950, 150, 67, 22 
         font = QtGui.QFont()
         font.setPointSize(12)
         self.Hstep.setPlaceholderText("sep by ','")
@@ -507,7 +509,7 @@ class Ui_MainWindow(object):
         
         # Input 5 Hstep Label
         self.Hsteplabel = QtWidgets.QLabel(self.centralwidget)
-        self.Hsteplabel.setGeometry(QtCore.QRect(1430, 150, 170, 22))
+        self.Hsteplabel.setGeometry(QtCore.QRect(1810, 150, 170, 22))
         font = QtGui.QFont()
         font.setPointSize(12)
         self.Hsteplabel.setFont(font)
@@ -516,7 +518,7 @@ class Ui_MainWindow(object):
         
         # Input 6: Astep
         self.Astep = QtWidgets.QLineEdit(self.centralwidget)
-        self.Astep.setGeometry(QtCore.QRect(1990, 150, 200, 22))
+        self.Astep.setGeometry(QtCore.QRect(1610, 150, 200, 22))
         font = QtGui.QFont()
         font.setPointSize(12)
         self.Astep.setPlaceholderText("sep by ','")
@@ -530,7 +532,7 @@ class Ui_MainWindow(object):
         
         # Input 6 Astep Label
         self.Asteplabel = QtWidgets.QLabel(self.centralwidget)
-        self.Asteplabel.setGeometry(QtCore.QRect(1810, 150, 170, 22))
+        self.Asteplabel.setGeometry(QtCore.QRect(1430, 150, 170, 22))
         font = QtGui.QFont()
         font.setPointSize(12)
         self.Asteplabel.setFont(font)
@@ -877,6 +879,34 @@ class Ui_MainWindow(object):
         self.label_40.setFont(font)
         self.label_40.setAlignment(QtCore.Qt.AlignCenter)
         self.label_40.setObjectName("label_40")
+
+        font = QtGui.QFont()
+        font.setFamily("Adobe Arabic")
+        font.setPointSize(12)
+
+        self.year = QtWidgets.QLineEdit(self.centralwidget)
+        self.year.setGeometry(QtCore.QRect(1280, 60, 100, 20))
+        self.year.setFont(font)
+        self.year.setPlaceholderText("Year (YYYY)")
+        self.year.setAlignment(QtCore.Qt.AlignCenter)
+
+        self.month = QtWidgets.QLineEdit(self.centralwidget)
+        self.month.setGeometry(QtCore.QRect(1280, 85, 100, 20))# 1280, 150, 101, 41
+        self.month.setFont(font)
+        self.month.setPlaceholderText("Month (MM)")
+        self.month.setAlignment(QtCore.Qt.AlignCenter)
+
+        self.day = QtWidgets.QLineEdit(self.centralwidget)
+        self.day.setGeometry(QtCore.QRect(1280, 110, 100, 20))# 1280, 150, 101, 41
+        self.day.setFont(font)
+        self.day.setPlaceholderText("Day (DD)")
+        self.day.setAlignment(QtCore.Qt.AlignCenter)
+
+        self.hour = QtWidgets.QLineEdit(self.centralwidget)
+        self.hour.setGeometry(QtCore.QRect(1280, 135, 100, 20))# 1280, 150, 101, 41
+        self.hour.setFont(font)
+        self.hour.setPlaceholderText("Hour (HH) by 24")
+        self.hour.setAlignment(QtCore.Qt.AlignCenter)
         
         MainWindow.setCentralWidget(self.centralwidget)
         self.menubar = QtWidgets.QMenuBar(MainWindow)
@@ -893,7 +923,7 @@ class Ui_MainWindow(object):
         self.lineEdit_4.setReadOnly(True)
         self.auto.setEnabled(False)
         self.custom.setEnabled(False)
-        self.pushButton_2.setEnabled(False)
+        #self.pushButton_2.setEnabled(False)
         
         self.custom.stateChanged.connect(self.mode_select)
         self.auto.stateChanged.connect(self.mode_select)
@@ -940,7 +970,7 @@ class Ui_MainWindow(object):
         self.label_19.setText(_translate("MainWindow", "Positive DC:"))
         self.label_20.setText(_translate("MainWindow", "Negative DC:"))
         self.label_21.setText(_translate("MainWindow", "RF Channel:"))
-        self.label_22.setText(_translate("MainWindow", "Configuration Control"))
+        self.label_22.setText(_translate("MainWindow", "Running Control"))
         self.pushButton_3.setText(_translate("MainWindow", "Play"))
         self.pushButton_4.setText(_translate("MainWindow", "Clear"))
         self.label_28.setText(_translate("MainWindow", "A vs Q"))
@@ -957,8 +987,8 @@ class Ui_MainWindow(object):
 
         self.Aminputlabel.setText(_translate("MainWindow", "Start Amplitude (V):"))
         self.AMinputlabel.setText(_translate("MainWindow", "End Amplitude (V):"))
-        self.Qminputlabel.setText(_translate("MainWindow", "Start DC Voltage (V):"))
-        self.QMinputlabel.setText(_translate("MainWindow", "End DC Voltage (V):"))
+        self.Slopelabel.setText(_translate("MainWindow", "Slope:"))
+        self.Interceptlabel.setText(_translate("MainWindow", "Interception (V):"))
         self.Asteplabel.setText(_translate("MainWindow", "RF Step (V):"))
         self.Hsteplabel.setText(_translate("MainWindow", "DC Step (V):"))
         self.Samplelabel.setText(_translate("MainWindow", "Number of Samples:"))
@@ -971,6 +1001,7 @@ class Ui_MainWindow(object):
         self.selecting.setText(_translate("MainWindow", "Selecting Mode"))
         self.scanning.setText(_translate("MainWindow", "Scanning Mode"))
 
+#使用pyqt5通用函数，让一些东西可以enabled 或者disabled
     def enable_parameter(self):
         self.sendcom.setEnabled(True)
         self.sendbot.setEnabled(True)
@@ -985,7 +1016,8 @@ class Ui_MainWindow(object):
         self.lineEdit_2.setReadOnly(False)
         self.lineEdit_3.setReadOnly(False)
         self.lineEdit_4.setReadOnly(False)
-        
+
+#使用pyqt5通用函数，让一些东西可以enabled 或者disabled        
     def disable_parameter(self):
         self.sendcom.setEnabled(False)
         self.sendbot.setEnabled(False)
@@ -1002,13 +1034,14 @@ class Ui_MainWindow(object):
         #self.lineEdit_4.setReadOnly(True)
         self.Aminputdata.setReadOnly(True)
         self.AMinputdata.setReadOnly(True)
-        self.Qminputdata.setReadOnly(True)
-        self.QMinputdata.setReadOnly(True)
+        self.Slopeinputdata.setReadOnly(True)
+        self.Interceptionputdata.setReadOnly(True)
         self.Duration.setReadOnly(True)
         self.Astep.setReadOnly(True)
         self.Hstep.setReadOnly(True)
         self.Sample.setReadOnly(True)
 
+#给scanning mode 和 selecting mode 工作模式选择做准备
     def mode_select(self, state):
         # If either check box is checked, disable the other
         if state == Qt.Checked:
@@ -1016,8 +1049,8 @@ class Ui_MainWindow(object):
                 self.auto.setChecked(False)
                 self.Aminputdata.setReadOnly(False)
                 self.AMinputdata.setReadOnly(False)
-                self.Qminputdata.setReadOnly(False)
-                self.QMinputdata.setReadOnly(False)
+                self.Slopeinputdata.setReadOnly(False)
+                self.Interceptionputdata.setReadOnly(False)
                 self.Duration.setReadOnly(False)
                 self.Astep.setReadOnly(False)
                 self.Hstep.setReadOnly(False)
@@ -1027,8 +1060,8 @@ class Ui_MainWindow(object):
                 self.custom.setChecked(False)
                 self.Aminputdata.setReadOnly(False)
                 self.AMinputdata.setReadOnly(False)
-                self.Qminputdata.setReadOnly(False)
-                self.QMinputdata.setReadOnly(False)
+                self.Slopeinputdata.setReadOnly(False)
+                self.Interceptionputdata.setReadOnly(False)
                 self.Sample.setReadOnly(False)
                 self.Duration.setReadOnly(False)
                 self.Astep.setReadOnly(True)
@@ -1036,13 +1069,14 @@ class Ui_MainWindow(object):
         else:
             self.Aminputdata.setReadOnly(True)
             self.AMinputdata.setReadOnly(True)
-            self.Qminputdata.setReadOnly(True)
-            self.QMinputdata.setReadOnly(True)
+            self.Slopeinputdata.setReadOnly(True)
+            self.Interceptionputdata.setReadOnly(True)
             self.Duration.setReadOnly(True)
             self.Astep.setReadOnly(True)
             self.Hstep.setReadOnly(True)
             self.Sample.setReadOnly(True)
 
+#点了scanning mode后 custom mode和auto mode就可以使用了，且他俩是互斥的
     def work_select(self, state):
         # If either check box is checked, disable the other
         if state == Qt.Checked:
@@ -1061,6 +1095,7 @@ class Ui_MainWindow(object):
             self.auto.setEnabled(False)
             self.custom.setEnabled(False)
 
+#scanning_mode 能让一些东西enable或disable
     def scanning_mode(self):
         self.lineEdit.setReadOnly(True)
         self.lineEdit_2.setReadOnly(True)
@@ -1068,18 +1103,19 @@ class Ui_MainWindow(object):
         self.lineEdit_4.setReadOnly(True)
         self.Aminputdata.setReadOnly(True)
         self.AMinputdata.setReadOnly(True)
-        self.Qminputdata.setReadOnly(True)
-        self.QMinputdata.setReadOnly(True)
+        self.Slopeinputdata.setReadOnly(False)
+        self.Interceptionputdata.setReadOnly(False)
         self.Duration.setReadOnly(True)
         self.Astep.setReadOnly(True)
         self.Hstep.setReadOnly(True)
         self.Sample.setReadOnly(True)
 
+#selecting_mode 能让一些东西enable或disable
     def selecting_mode(self):
         self.Aminputdata.setReadOnly(True)
         self.AMinputdata.setReadOnly(True)
-        self.Qminputdata.setReadOnly(True)
-        self.QMinputdata.setReadOnly(True)
+        self.Slopeinputdata.setReadOnly(True)
+        self.Interceptionputdata.setReadOnly(True)
         self.Duration.setReadOnly(True)
         self.Astep.setReadOnly(True)
         self.Hstep.setReadOnly(True)
@@ -1088,4 +1124,3 @@ class Ui_MainWindow(object):
         self.lineEdit_2.setReadOnly(False)
         self.lineEdit_3.setReadOnly(False)
         self.lineEdit_4.setReadOnly(False)
-

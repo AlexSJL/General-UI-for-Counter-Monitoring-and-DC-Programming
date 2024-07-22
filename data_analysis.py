@@ -14,7 +14,7 @@ class DataAnalysis():
         self.Day = Day
         self.Hour = Hour
         self.histogram_filename = self.datapath + '/' + str(Year) + str(Month) + str(Day) + '/' + 'Histogram' + '/' + str(Year) + str(Month) + str(Day) + str(Hour) + "_Counter_Histogram_Data.csv"
-        self.line_filename = self.datapath + '/' + str(Year) + str(Month) + str(Day) + str(Hour) + '/' + 'Line Chart' + '/' + "_Counter_mean_Data.csv"
+        self.line_filename = self.datapath + '/' + str(Year) + str(Month) + str(Day) + '/' + 'Line Chart' + '/' + str(Year) + str(Month) + str(Day) + str(Hour) + "_Counter_mean_Data.csv"
 
     def hist_sort(self, bin): # Binning Counts in different Bins into a single file
         bin_path = self.datapath + '/'  + str(self.Year) + str(self.Month) + str(self.Day) + '/' + 'Binned_Data'
@@ -40,34 +40,55 @@ class DataAnalysis():
 
         ind = list(f.index.values.tolist())
         self.dic = []
-
-        for i in ind:
-            if i + win< len(df):
-                self.dic.append(df.iloc[i:i + win, :])
-            else:
-                self.dic.append(df.iloc[i:, :])
-    
-    def line_check_plt(self):
-        if len(self.dic) == 0:
-            return
-
-        l = len(self.dic)
-        num_wid = 2
-        num_len = np.ceil(l / num_wid)
-        wid = num_wid * 14
-        flen = num_len * 7
-        fig, ax = plt.subplots(int(num_len), int(num_wid), figsize=(wid, flen))
-
-
-        print("改变参数后{}".format(self.win)  + "秒后均值变化")
-        for i in range(int(num_len)):
-            for j in range(int(num_wid)):
-                if 2 * i + j < l:
-                    ax[i][j].set_title(self.dic[2 * i + j].iloc[0,3])
-                    #ax[i][j].xaxis.set_visible(False)
-                    ax[i][j].set_xlabel("Date and Time")
-                    ax[i][j].set_ylabel("Mean")
-                    ax[i][j].plot(list(range(1, self.win + 1)), self.dic[2 * i + j].iloc[:,1])
+        self.flag = None
         
+        if ind == []:
+            self.flag = False
+            try:
+                self.dic = df.iloc[0:self.win,:]
+            except:
+                self.dic = df.iloc[0:, :]
+                self.win = len(self.dic)
+        else:
+            self.flag = True
+            for i in ind:
+                if i + win< len(df):
+                    self.dic.append(df.iloc[i:i + win, :])
+                else:
+                    self.dic.append(df.iloc[i:, :])
+    
+    def hist_check(self, num_bin = 32):
+        self.hist = []
+        for bin in range(num_bin):
+            bin_path = self.datapath + '/'  + str(self.Year) + str(self.Month) + str(self.Day) + '/' + 'Binned_Data'
+            _filename = bin_path + '/' + str(self.Year) + str(self.Month) + str(self.Day) + str(self.Hour) + "_Bin_" + str(bin + 1) + "_Data.csv"
+            #print(_filename)
+
+            col_names = ['Date and Time', 'Counts']
+            try:
+                df = pd.read_csv(_filename, names = col_names, header=None, encoding = 'gbk', skiprows=1)
+            except:
+                raise ValueError('The file or directory does not exist')
+
+            self.hist.append(df)
+
+        
+        #fig, ax = plt.subplots(num_bin, 1, figsize=(14, 7 * num_bin))
+
+        #fig, ax = plt.subplots(1, 1, figsize=(14, 7))
+        #tick_spacing0 = 100
+        #tick_spacing1 = 200
+        #ax.yaxis.set_major_locator(ticker.MultipleLocator(tick_spacing0))
+        #ax.xaxis.set_major_locator(ticker.MultipleLocator(tick_spacing1))
+        #ax.plot(self.hist[0].iloc[1:,0], self.hist[0].iloc[1:,1])
+        '''
+        for i in range(num_bin):
+            #import ipdb; ipdb.set_trace()
+        #    print(len(self.hist[i].iloc[1:,0]))
+            ax[i].set_title("Evolution of bin {}".format(str(i + 1)))
+            ax[i].set_xlabel("Date and Time")
+            ax[i].set_ylabel("Counts")
+            ax[i].plot(list(range(1, len(self.hist[i].iloc[1:,0]) + 1)), self.hist[i].iloc[1:,1])
+        '''
 
 

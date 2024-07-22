@@ -46,7 +46,7 @@ class DCThread(QThread):
             RF_val=float(self.DC.RF.read_dc_v())
             try:
                 self.Hmon=float(Hm)
-                self.thread.update_data2(RF_val, Hmon)
+                self.thread.update_data2(RF_val, self.Hmon)
             except:
                 pass
             self.mutex.unlock()
